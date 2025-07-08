@@ -125,3 +125,6 @@ st.markdown("This app requires an Excel file named `All_Courses.xlsx` with the f
 st.markdown("- `Code`: Course code (numeric)")
 st.markdown("- `Course`: Course name")
 st.markdown("- `Incompatibilities`: Comma-separated list of incompatible course codes")
+
+st.markdown("### 🚀 Deployment:")
+st.markdown("To run this app locally: `pip install -r requirements.txt && streamlit run app.py`")
