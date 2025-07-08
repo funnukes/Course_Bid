@@ -2,29 +2,30 @@ import streamlit as st
 import pandas as pd
 import os
 
-# --- Data Definition (Replaces Excel File) ---
-data = {
-    'Code': [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115],
-    'Course': [
-        "Introduction to Programming", "Data Structures", "Algorithms",
-        "Database Management", "Web Development", "Operating Systems",
-        "Computer Networks", "Artificial Intelligence", "Machine Learning",
-        "Cybersecurity Fundamentals", "Cloud Computing", "Mobile App Development",
-        "Game Design", "Software Engineering", "Human-Computer Interaction"
-    ],
-    'Incompatibilities': [
-        '', '101', '101,102', '', '103', '102',
-        '101,104', '102,103', '108', '105', '107',
-        '104,105', '101,102', '106', ''
-    ]
-}
-df = pd.DataFrame(data)
-# --- End of Data Definition ---
+# --- Load Data from CSV File ---
+# Assuming 'All_Courses.csv' is in the same directory as this script (main.py).
+try:
+    df = pd.read_csv('All_Courses.csv') # Changed filename here
+    # Ensure 'Code' column is treated as strings for consistency with comparisons later
+    df['Code'] = df['Code'].astype(str)
+except FileNotFoundError:
+    st.error("Error: 'All_Courses.csv' not found. Please make sure the CSV file is in the same directory as the script.")
+    st.stop() # Stop the app if the file isn't found
+except Exception as e:
+    st.error(f"Error loading CSV file: {e}")
+    st.stop() # Stop the app if there's another error during loading
 
-# Prepare data (same as your original code)
+# --- End of Data Loading ---
+
+# Prepare data (same as your original code, adapted for new column names if needed)
+# Ensure your CSV has 'Code', 'Course Name', 'Professor', 'Sessions', 'Incompatibilities'
+# We'll map 'Course Name' to 'Course' for compatibility with the rest of the code.
+df.rename(columns={'Course Name': 'Course'}, inplace=True)
+
+
 df['Incompatibilities'] = df['Incompatibilities'].fillna('').astype(str)
 df['Incompatible_List'] = df['Incompatibilities'].apply(
-    lambda x: [i.strip() for i in x.split(',') if i.strip().isdigit()]
+    lambda x: [i.strip() for i in x.split(',') if i.strip() and i.strip() != '200F']
 )
 df['Decision'] = 'No'  # Default
 
@@ -43,7 +44,7 @@ selected_codes = [
 # Find all incompatible course codes
 incompatible_all = set()
 for code in selected_codes:
-    course_row = df[df['Code'] == int(code)]
+    course_row = df[df['Code'] == code] # Compare string codes
     if not course_row.empty:
         incompatible_all.update(course_row.iloc[0]['Incompatible_List'])
 
@@ -84,7 +85,7 @@ for idx, row in df.iterrows():
 
 # Final course selection
 final_selected_codes = [c for c, v in st.session_state.selections.items() if v == 'Yes']
-final_selected_names = [df[df['Code'] == int(c)].iloc[0]['Course'] for c in final_selected_codes]
+final_selected_names = [df[df['Code'] == c].iloc[0]['Course'] for c in final_selected_codes] # Compare string codes
 
 st.markdown("---")
 st.subheader("✅ Selected Courses:")
@@ -99,11 +100,11 @@ st.markdown("### 🚫 Incompatible Courses:")
 if final_selected_codes:
     incompatible_names = set()
     for code in final_selected_codes:
-        row = df[df['Code'] == int(code)].iloc[0]
+        row = df[df['Code'] == code].iloc[0] # Compare string codes
         incompatible_codes = row['Incompatible_List']
         for inc in incompatible_codes:
             if inc not in final_selected_codes:
-                course_name = df[df['Code'] == int(inc)]['Course'].values
+                course_name = df[df['Code'] == inc]['Course'].values # Compare string codes
                 if len(course_name) > 0:
                     incompatible_names.add(course_name[0])
 
@@ -120,11 +121,11 @@ else:
 st.markdown("---")
 st.markdown("### 📝 Instructions:")
 st.markdown("""
-1. **Select up to 5 courses** from the list above
-2. **Incompatible courses** will be automatically disabled when you make selections
-3. **View your final selection** in the summary above
-4. **Check compatibility** in the incompatible courses section
+1. **Select up to 5 courses** from the list above.
+2. **Incompatible courses** will be automatically disabled when you make selections.
+3. **View your final selection** in the summary above.
+4. **Check compatibility** in the incompatible courses section.
 """)
 
 st.markdown("### 🚀 Deployment:")
-st.markdown("To run this app locally: `pip install streamlit pandas` and then `streamlit run your_script_name.py`")
+st.markdown("To run this app locally: `pip install streamlit pandas` and then `streamlit run main.py`")
