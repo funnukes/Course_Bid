@@ -8,8 +8,13 @@ try:
 except FileNotFoundError:
     st.error("❌ Error: 'All_Courses.xlsx' file not found. Please ensure the file is in the same directory as this script.")
     st.stop()
+except ImportError:
+    st.error("❌ Missing dependency: Please install openpyxl by running: `pip install openpyxl`")
+    st.stop()
 except Exception as e:
     st.error(f"❌ Error reading Excel file: {str(e)}")
+    if "openpyxl" in str(e):
+        st.info("💡 Try installing openpyxl: `pip install openpyxl`")
     st.stop()
 df['Incompatibilities'] = df['Incompatibilities'].fillna('').astype(str)
 df['Incompatible_List'] = df['Incompatibilities'].apply(
