@@ -2,20 +2,26 @@ import streamlit as st
 import pandas as pd
 import os
 
-# Load and prepare data from Excel file
-try:
-    df = pd.read_excel("All_Courses.xlsx")
-except FileNotFoundError:
-    st.error("❌ Error: 'All_Courses.xlsx' file not found. Please ensure the file is in the same directory as this script.")
-    st.stop()
-except ImportError:
-    st.error("❌ Missing dependency: Please install openpyxl by running: `pip install openpyxl`")
-    st.stop()
-except Exception as e:
-    st.error(f"❌ Error reading Excel file: {str(e)}")
-    if "openpyxl" in str(e):
-        st.info("💡 Try installing openpyxl: `pip install openpyxl`")
-    st.stop()
+# --- Data Definition (Replaces Excel File) ---
+data = {
+    'Code': [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115],
+    'Course': [
+        "Introduction to Programming", "Data Structures", "Algorithms",
+        "Database Management", "Web Development", "Operating Systems",
+        "Computer Networks", "Artificial Intelligence", "Machine Learning",
+        "Cybersecurity Fundamentals", "Cloud Computing", "Mobile App Development",
+        "Game Design", "Software Engineering", "Human-Computer Interaction"
+    ],
+    'Incompatibilities': [
+        '', '101', '101,102', '', '103', '102',
+        '101,104', '102,103', '108', '105', '107',
+        '104,105', '101,102', '106', ''
+    ]
+}
+df = pd.DataFrame(data)
+# --- End of Data Definition ---
+
+# Prepare data (same as your original code)
 df['Incompatibilities'] = df['Incompatibilities'].fillna('').astype(str)
 df['Incompatible_List'] = df['Incompatibilities'].apply(
     lambda x: [i.strip() for i in x.split(',') if i.strip().isdigit()]
@@ -53,15 +59,15 @@ for idx, row in df.iterrows():
     is_selected = st.session_state.selections.get(code) == 'Yes'
     is_disabled = False
     reason = ""
-    
+
     if code in incompatible_all and not is_selected:
         is_disabled = True
         reason = "❌ Incompatible with selected courses"
-    
+
     if len(selected_codes) >= 5 and not is_selected:
         is_disabled = True
         reason = "⚠️ Limit reached"
-    
+
     col1, col2 = st.columns([4, 1])
     with col1:
         st.markdown(f"**{name}** (Code: `{code}`)")
@@ -100,7 +106,7 @@ if final_selected_codes:
                 course_name = df[df['Code'] == int(inc)]['Course'].values
                 if len(course_name) > 0:
                     incompatible_names.add(course_name[0])
-    
+
     if incompatible_names:
         st.error("The following courses are **not compatible** with your current selection:")
         for name in sorted(incompatible_names):
@@ -120,11 +126,5 @@ st.markdown("""
 4. **Check compatibility** in the incompatible courses section
 """)
 
-st.markdown("### 📁 File Requirements:")
-st.markdown("This app requires an Excel file named `All_Courses.xlsx` with the following columns:")
-st.markdown("- `Code`: Course code (numeric)")
-st.markdown("- `Course`: Course name")
-st.markdown("- `Incompatibilities`: Comma-separated list of incompatible course codes")
-
 st.markdown("### 🚀 Deployment:")
-st.markdown("To run this app locally: `pip install -r requirements.txt && streamlit run app.py`")
+st.markdown("To run this app locally: `pip install streamlit pandas` and then `streamlit run your_script_name.py`")
